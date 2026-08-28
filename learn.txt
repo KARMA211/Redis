@@ -1,0 +1,106 @@
+WHAT I CANNOT CREATE , I DO NOT UNDERSTAND 
+
+
+
+Redis is basically a very fast data store that keeps data primarily in RAM.
+also called an Data Structuer Server
+
+
+                Redis Server
+                     |
+        ┌────────────┼────────────┐
+        ↓            ↓            ↓
+     Network      Command       Storage
+     handling     parser        engine
+        |            |            |
+        ↓            ↓            ↓
+     TCP socket    SET/GET       Hash map
+                   LPUSH         Lists
+                   HSET          Sets
+
+
+
+
+A typical backend might actually use both:
+Redis Cache and PostgresSQL database 
+
+Redis Might contain 
+    session
+    cache
+    temporary data
+    rate limits
+    queues
+    leaderboards
+
+PostgresSQL might contain 
+    users
+    orders
+    payments
+    products
+    transactions
+
+
+
+
+
+NOTE -> Redis can presist data , redis use ram , so if pc shuts down , everything goes ? NO 
+        Redis use persistence mechanism like snapshots and append-only log . 
+Redis is designed around in-memory data access , while also providing mechanism for persistence .
+
+
+
+                 REDIS
+                   |
+       ┌───────────┴───────────┐
+       ↓                       ↓
+   TCP SERVER             DATA STORE
+       |                       |
+       ↓                       ↓
+ Receives commands       RAM-based data
+       |                       |
+       ↓              ┌────────┼────────┐
+   SET / GET           ↓        ↓        ↓
+   HSET / HGET       String   List     Set
+   LPUSH / RPOP                Hash
+                               Sorted Set 
+
+
+
+
+TCP -> continous stream of bytes , with no internal boundaries 
+
+
+Data Serialization -> Mapping between objects and bytes 
+
+
+
+------------------------------------------------------------------------------------
+
+
+
+
+
+NETWORKING FROM A PROMGRMAMMERS PERSPECTIVE 
+
+1>Layer of small ,descrete messages (ip)
+    Lowest layer is packet based . the ability to assemble packets into application layer is 
+    provided by higher layer , usually TCP.
+
+2> Layer of Multiplexing (Port Number)
+    The next layer of IP ( UDP OR TCP ) adds a 16-bit port number to distinguish btw different apps.
+    Each app claims a unused local port number before it can send or recive data . 
+    computer uses the 4-tuple to identify a flow of informatio : (srs_ip,srs_port,dst_ip,dst_port)
+
+
+3> Layer of reliable and ordered bytes (TCP)
+    TCP provides a layer of reliable and ordered bytes on top of IP packets 
+
+3> TCP/IP Model 
+    Higher	    TCP             	Reliable & ordered bytes
+    ↕	        Port in TCP/UDP	    Multiplex to programs
+    Lower	    IP	                Small, discrete messages
+
+
+
+
+NOTE -> we only need from the IP layer is the source and destination address 
