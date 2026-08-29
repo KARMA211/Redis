@@ -247,6 +247,12 @@ while True:
     close(conn_fd)
 
 
+
+
+
+
+
+
 STEP 1 -> obtain a socket handle 
 
 int fd = socket( AF_INET , SOCK_STREAM , 0);
@@ -263,6 +269,12 @@ IPv6+UDP	socket(AF_INET6, SOCK_DGRAM, 0)
 
 We will only be using TCP 
 man ip.7 tells you how to create TCP/UDP sockets and the required #include's
+
+
+
+
+
+
 
 
 
@@ -290,7 +302,201 @@ combination of 2nd and 3rd argument specifies which option to set
 different option use different types , so the size of the option value is also needed 
 
 
+
+
+
+
+
+
 STEP 3 -> Binding to an Address 
+
+sockadder_in ->   C data structure that stores IPv$ network address, containing the 
+    address family(sin_family), port number (sin_port) , and IP address (sin_addr)
+    Tells what IP address and port should this socket use 
+
+--------snippet ->
+
+struct sockaddr_in addr = {};
+
+addr.sin_family = AF_INET;
+addr.sin_port = htons(1234);
+addr.sin_addr.s_addr = htonl(0);
+
+int rv = bind(
+    fd,
+    (const struct sockaddr *)&addr,
+    sizeof(addr)
+);
+
+------------
+
+
+sin_family -> tells the addres is ipv4 
+
+    struct sockaddr_in addr = {};
+
+    socket()
+       │
+       └── AF_INET → IPv4
+
+    sockaddr_in
+       │
+       └── sin_family = AF_INET → IPv4
+
+sin_port -> 
+    says use port '1234'
+    addr.sin_port = hotns(1234);
+
+    htons() -> convert a 16 bit number to network byte order 
+    htonl() -> convert a 32 bit number to network byte order 
+    htonl -> host to network long 
+
+sin_addr -> 
+            addr.sin_addr.s_addr = htonl(0);
+        this is the IP address. 
+        0 means 0.0.0.0 ... Listen to all available netwrk interfaces i.e. wifi , ethernet
+                                                                                    , localhost        
+        now if i bind to 0.0.0.0:1234 
+        it means .. accept connection coming to port 1234 on any of my network interface 
+
+
+
+we just creater 
+
+IPv4
+   ↓
+0.0.0.0
+   ↓
+port 1234
+
+or 
+
+0.0.0.0:1234 
+
+
+
+
+now we attach th socket to the address 
+we have:
+fd----our socket 
+addr----- 0.0.0.0:1234 
+
+we bind them -> bind(fd, ...addr... ):
+
+socket fd
+    │
+    │ bind
+    ↓
+0.0.0.0:1234
+
+now the os knows the socket fd is associated with port 1234 
+
+now bind -> bind(fd, (const struct sockaddr *)&addr, sizeof(addr));
+ we cated addr into that coz bind only accept struct sockaddr* 
+
+ remember -> struct sockaddr_in addr; contain the ipv4 address information 
+
+
+sizeof(addr) tells bind how many bytes does this address struct occupies 
+
+bind(
+    fd,          // socket
+    address,     // address information
+    address size // size of address information
+);
+
+
+                SERVER
+
+        socket(AF_INET, SOCK_STREAM, 0)
+                    │
+                    ▼
+              socket fd
+                    │
+                    ▼
+        ┌─────────────────────┐
+        │ sockaddr_in addr    │
+        │                     │
+        │ family = IPv4       │
+        │ port   = 1234       │
+        │ IP     = 0.0.0.0    │
+        └─────────────────────┘
+                    │
+                    ▼
+              bind(fd, addr)
+                    │
+                    ▼
+          Socket is associated
+             with 0.0.0.0:1234
+
+
+| Thing         | Meaning                           |
+| ------------- | --------------------------------- |
+| `sockaddr_in` | IPv4 address + port structure     |
+| `AF_INET`     | IPv4                              |
+| `sin_port`    | Port number                       |
+| `sin_addr`    | IP address                        |
+| `htons()`     | Host → network byte order, 16-bit |
+| `htonl()`     | Host → network byte order, 32-bit |
+| `0.0.0.0`     | All local interfaces              |
+| `bind()`      | Attach socket to an IP + port     |
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+STEP 4 -> listen()
+
+we have socket()->setsockpot()->bind()
+
+now we gotta accept the client 
+
+
+snippt-----------------
+
+rv = listen(fd, SOMAXCONN);
+
+if (rv) {
+    die("listen()");
+}
+
+
+---------------------
+
+
+SOMAXCONN -> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
