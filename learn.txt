@@ -103,4 +103,197 @@ NETWORKING FROM A PROMGRMAMMERS PERSPECTIVE
 
 
 
-NOTE -> we only need from the IP layer is the source and destination address 
+NOTE -> the only thing we only need from the IP layer is the source and destination address 
+        IP , post , TCP/UDP are the concepts we wil be dealing with .
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------
+
+SOCKET -> specific type of handle that is used only to taling to computers on the internet 
+        API for netwrking is called Socket API 
+
+
+handle -> like a sticky note you write a number on that represent a process.. like play a song 
+
+
+thes are called a 'fd' / "file discriptor" in Linux .. it can reffer to a song , a printer or an 
+internet connection 
+
+socket() -> its a command that asks the computer to give a blank internet sticky note 
+Always throw away the sticky note once you are done using it .. if u dont the computer 
+thinks you are still using it and keeps the internet wire open in the background 
+
+Listening -. telling the OS that you are ready to accept TCP connection froma given port 
+
+CREATING A LISTENING SOCKET REQUIRE AT LEAST 3 API CALLS :
+1> Obtaining a soclet handle via socket() 
+2> Set the listening IP:port via bind()
+3> Create the listening Port via listen()
+
+
+
+then use accept() API to wait for incoming TCP connection . Pseudo code ->
+
+fd = socket()
+bind(fd , address )
+listen(fd)
+while True:
+        conn_fd = accept(fd)
+        do_something_with(conn_fd)
+        close(conn_fd)
+
+
+
+Connect from a client 
+
+- obtain a socket handle via socket()
+- create the connection socket via connect()
+
+fd = socket()
+connect(fd, addredd)
+do_something_with(fd)
+close(fd)
+
+socket() areate a typeless socket(can be listening or connectiobn ) . It is later determined after 
+listen() or connect() call . 
+the bind() btw socket() and listen() merely seta parameter 
+
+
+
+
+Summary: list of socket primitives
+
+Listening TCP socket:
+    bind() & listen()
+    accept()
+    close()
+
+Using a TCP socket:
+    read()
+    write()
+    close()
+
+Create a TCP connection: connect()
+
+
+
+
+
+
+
+
+PREREQUISIT -> 
+
+learn how to run files in linux using g++ 
+
+printf()
+assert()
+
+
+strace ./program   -> lets you watch all the upcoming commands 
+open()
+read()
+write()
+fork()
+execve()
+socket() 
+
+gdb ./program 
+
+man socket.2 -> shows the man page for socket() syscall
+
+on Linux all socket API methods are syscall 
+
+man read.2 returns the read() syscall (section 2 is for syscalls).
+man read returns the read shell command (in section 1; not what you want).
+man socket.2 return the socket() syscall.
+man socket.7 returns the socket interface overview, not the syscall.
+
+
+
+
+Section	        Contains	                                Example
+1	            User commands / shell commands	            man ls, man printf
+2	            System calls	                            man 2 read, man 2 socket
+3	            C library functions	                        man 3 printf, man 3 malloc
+4	            Devices / special files	                    man 4 null
+5	            Configuration files / file formats	        man 5 passwd
+6	            Games	                                    man 6
+7	            Miscellaneous / conventions / overviews	    man 7 socket
+8	            System administration commands	            man 8 systemctl
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------
+
+CREATING TCP SERVER 
+
+we had the psudo code -> 
+
+fd = socket()
+bind(fd , address )
+listen(fd)
+while True:
+    conn_fd = accept(fd)
+    do_something_with(conn_fd)
+    close(conn_fd)
+
+
+STEP 1 -> obtain a socket handle 
+
+int fd = socket( AF_INET , SOCK_STREAM , 0);
+
+AF_INET is for ipv4 , AF_INET6 is for ipv6 or dual_stack socket 
+SOCK_STREAM is for TCP , use SOCK_DGRAM for UDP 
+3rd argument is 0 , useless for our purpose 
+
+IPv4+TCP	socket(AF_INET, SOCK_STREAM, 0)
+IPv6+TCP	socket(AF_INET6, SOCK_STREAM, 0)
+IPv4+UDP	socket(AF_INET, SOCK_DGRAM, 0)
+IPv6+UDP	socket(AF_INET6, SOCK_DGRAM, 0)
+
+
+We will only be using TCP 
+man ip.7 tells you how to create TCP/UDP sockets and the required #include's
+
+
+
+STEP 2 -> set socket options 
+
+int val = 1 ;
+setsockpot(fd,SOL_SOCKET , SO_REUSEADDR , &val , sizeof(val));
+
+
+setsockopt( socket, option level, option name, option value, size of value)
+
+SO_REUSEADDR -> It mainly makes it possible to reuse a local address/port in situations
+where the OS would otherwise reject the bind(), especially after restarting TCP servers.
+
+in simple language .. It mainly makes it possible to reuse a local address/port in situations 
+where the OS would otherwise reject the bind(), especially after restarting TCP servers.
+
+SO_REUSEADDR .. if not set to 1 -> a server program cannot bind to the same IP:port it was using 
+                after restart 
+1-> enable 
+0 -> not enabled 
+
+combination of 2nd and 3rd argument specifies which option to set 
+4th argument is th option value 
+different option use different types , so the size of the option value is also needed 
+
+
+STEP 3 -> Binding to an Address 
+
+
+
+
+
+
