@@ -474,7 +474,48 @@ if (rv) {
 ---------------------
 
 
-SOMAXCONN -> 
+SOMAXCONN -> its the waiting queue size . 
+basically saying , use a large backlog for incoming connections 
+
+
+The tcp handsake i.e.
+
+Client                    Server
+
+   SYN  ------------------>
+
+        <------------------ SYN + ACK
+
+   ACK  ------------------>
+
+          Connection established
+
+we dont manually set it up . once we call listen(fd , SOMAXCONN) .. the kernal/os automatically 
+handle it 
+
+
+
+uptil now ->
+
+socket()
+   │
+   │ "Give me a TCP socket"
+   ▼
+fd
+   │
+setsockopt()
+   │
+   │ "Configure it"
+   ▼
+bind()
+   │
+   │ "Use 0.0.0.0:1234"
+   ▼
+listen()
+   │
+   │ "Start accepting incoming TCP connections"
+   ▼
+[ WAITING... ]
 
 
 
@@ -490,6 +531,178 @@ SOMAXCONN ->
 
 
 
+STEP 5 ->  accept()
+
+socket()
+→ Get a phone
+
+bind()
+→ Give the phone a number
+
+listen()
+→ Tell Linux we're open
+
+accept()
+→ Answer a customer's call
+
+
+
+creates a new socket to communicate with the client while simultaniously litening through the older 
+socket 
+
+
+
+fd
+↓
+LISTENING
+
+connfd
+↓
+CLIENT CONNECTION
+
+
+Snippet 
+----------------------------------
+
+while (true) {
+    struct sockaddr_in client_addr = {};
+    socklen_t addrlen = sizeof(client_addr);
+
+    int connfd = accept(
+        fd,
+        (struct sockaddr *)&client_addr,
+        &addrlen
+    );
+
+    if (connfd < 0) {
+        continue;
+    }
+
+    do_something(connfd);
+    close(connfd);
+}
+
+----------------------------------
+
+
+
+we create a new socket using 
+    struct sockaddr_in client_addr = {};
+
+now the server might be 0.0.0.0:1234 
+and client might be 127.0.0.1:54321
+
+
+we create addrlen to tell accept that i have this much space available for the clients address 
+
+
+int connfd = accept(
+    fd,
+    (struct sockaddr *)&client_addr,
+    &addrlen
+);
+
+accept(
+    listening socket,
+    "where should client address go?",
+    "how much space is available?"
+)
+
+
+added the if statement , so if something goes wrong then we can catch it 
+
+now we close the connfd .. we dont need to give anything back once the work is done 
+we keep the fd open to listen to any new client 
+
+
+complete flow so far now 
+
+
+                 SERVER
+
+socket()
+   │
+   ▼
+Create socket
+   │
+setsockopt()
+   │
+   ▼
+Configure socket
+   │
+bind()
+   │
+   ▼
+0.0.0.0:1234
+   │
+listen()
+   │
+   ▼
+Waiting for clients
+   │
+   │
+   │ Client connects
+   ▼
+accept()
+   │
+   ▼
+connfd
+   │
+   ▼
+Talk to client
+   │
+read()/write()
+   │
+   ▼
+close(connfd)
+   │
+   └───────────────┐
+                   │
+                   ▼
+                accept()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Step 6 -> Read and Write 
+
+currently we have connection with that client and we can communicate .. 
+
+snippt 
+--------------------------------
+
+char rbuf[64] = {};
+
+ssize_t n = read(
+    connfd,
+    rbuf,
+    sizeof(rbuf) - 1
+);
+
+----------------------------
+ 
+just read data and put it in rbuf(character array) 
+we take 64 size but only use 63 ( sizeof(rbuf) -1 ) , as we wanna leave space for '\0'
+
+read(
+    connfd,              // where to read from
+    rbuf,                 // where to put the data
+    sizeof(rbuf) - 1      // maximum amount
+);
+
+
+Now we need to send something back 
 
 
 
