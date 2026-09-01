@@ -113,7 +113,7 @@ NOTE -> the only thing we only need from the IP layer is the source and destinat
 
 -------------------------------------------------------------------------------------------
 
-SOCKET -> specific type of handle that is used only to taling to computers on the internet 
+SOCKET -> specific type of handle that is used only to talking to computers on the internet 
         API for netwrking is called Socket API 
 
 
@@ -154,7 +154,7 @@ Connect from a client
 - create the connection socket via connect()
 
 fd = socket()
-connect(fd, addredd)
+connect(fd, address)
 do_something_with(fd)
 close(fd)
 
@@ -869,6 +869,62 @@ client dosent call bind() coz client dosent care what local port it uses
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+CHAPTER - 4
+
+change the server into a structure :
+
+snippet 
+-----------------------------------------------
+
+while (true) {
+        // accept
+        struct sockaddr_in client_addr = {};
+        socklen_t addrlen = sizeof(client_addr);
+        int connfd = accept(fd, (struct sockaddr *)&client_addr, &addrlen);
+        if (connfd < 0) {
+            continue;   // error
+        }
+        // only serves one client connection at once
+        while (true) {
+            int32_t err = one_request(connfd);
+            if (err) {
+                break;
+            }
+        }
+        close(connfd);
+    }
+
+-------------------------------------------------
+
+
+create a loop -> 
+server start -> accept client -> handle client -> close client -> accept another client -> handle client .............
+
+
+
+the server dosent know where each word end , so things might get mixed up 
+eg -> data send 'hello' 'world'.. as it gives a continous stream of bytes , 
+we may recive hel lowor ld 
+for fixing this we add a 'length-prefix protocol' .. so every message look like ->
+    [length][message]
+
+eg -> hello has 5 bytes 
+[05 00 00 00][hello]
+[4 bytes length][5 bytes hello]
 
 
 
