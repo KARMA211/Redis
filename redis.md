@@ -903,7 +903,10 @@ static int32_t one_request(int connfd) {
 
 
 
+SEE server04.cpp FOR THE FULL CODE AND EXPLANATION OF THINGS 
 
+NOW WE ARE GOING TO MAKE THE CLIENT UNDERSTAND THE FORMAT TOO 
+we create a query function -> it sends the string to server and wait for its response 
 
 
 
