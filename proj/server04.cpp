@@ -18,6 +18,8 @@
 #include <arpa/inet.h>
 #include <stdint.h> // for int32_t and uint32_t 
 #include <string.h> //for memcpy and strlen 
+#include <errno.h> //for ereno
+#include <sys/msg.h> // for msg -> inter process communication 
 
 
 const size_t k_max_msg = 4096;
@@ -118,14 +120,53 @@ static int32_t one_request(int connfd)
 }
 
 
-
+//query -> send this string to the server and wait for a response 
 static int32_t query(int fd , const char *text){
+    //calculate message len 
     uint32_t len = (uint32_t)strlen(text);
     if(len>k_max_msg)
         return -1;
 
-    //send request 
-    char wbuf[4+k_max_msg]
+    //build the request 
+    char wbuf[4+k_max_msg];
+    memcpy(wbuf , &len , 4);
+    memcpy(&wbuf[4] , text , len );
+
+    //send it 
+    if(int32_t err = write_full(fd ,wbuf , 4+len))
+        return err;
+
+
+    //wait for response ->
+    char rbuf[4+k_max_msg];
+    errno = 0;
+    int32_t err = read_full(fd, rbuf, 4);
+
+    if(err)
+    {
+        fprintf(stderr, "read() err\n");
+        return err;
+    }
+
+    memcpy(&len , rbuf , 4);
+
+    //validate the server response 
+    if(len>k_max_msg)
+    {
+        fprintf(stderr, "too long\n");
+        return -1;
+    }
+    //reply body 
+    err = read_full(fd , &rbuf[4], len);
+        if(err){
+            fprintf(stderr , "read() err\n");
+            return err;
+        }
+    
+    printf("server says: %.*s\n",len,&rbuf[4]);
+    return 0;
+
+
 }
 
 
@@ -148,8 +189,8 @@ if(fd<0){
 //taking an address 
 struct sockaddr_in addr = {};
 addr.sin_family = AF_INET; //ipv4
-addr.sin_port = ntohs(!234); // we want port 1234
-addr.sin_addr.s_addr = ntohl(0); // 0.0.0.0                           
+addr.sin_port = htons(1234); // we want port 1234
+addr.sin_addr.s_addr = htonl(INADDR_ANY);                           
 
 
 //connetcing socket to that address 
