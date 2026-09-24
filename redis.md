@@ -914,3 +914,86 @@ we create a query function -> it sends the string to server and wait for its res
 
 
 
+
+
+
+
+
+
+CHAPTER 5 ->
+
+problme we have unitl now is that if server accepts client A , and A sends nothing , then the 
+server is blocked and cant accept new clients .. we gotta find solutions for this 
+read() blocks the process 
+
+sol -> one thread per client
+```c 
+conn_fd = accept();
+
+new_thread(handle_client, conn_fd);
+```
+
+                Server
+                  │
+             accept()
+                  │
+        ┌─────────┴─────────┐
+        ↓                   ↓
+     Client A            Client B
+        │                   │
+    Thread 1             Thread 2
+        │                   │
+      read()              read()
+        │                   │
+      process()           process()
+        │                   │
+      write()             write()
+
+but this is not the final solution as threads can become ecpensive when you have thousands of 
+connections 
+
+
+
+
+EVENT BASED CONCURRENCY -> 
+we can ask - can the OS tell me ahet sockets needs attention 
+
+suppose we have 
+
+Socket A → no data
+Socket B → has data
+Socket C → no data
+Socket D → has data
+Socket E → no data 
+
+the OS can tell that -> B is ready , D is ready 
+
+
+
+
+BLOCKING READ -> 
+
+    if data exit ..... data availability -> read() -> return immidiately 
+
+    if data dosent exist .... no data -> read() -> WAIT 
+            the thread sleeps unitl data arrives 
+
+
+NON-BLOCKING READ -> 
+   we set O_NONBLOCK 
+
+    if data exist .... data availability -> read() -> return data 
+
+    if data dosent exist ...... no data -> read() -> EAGAIN 
+        
+EAGAIN -> raised while perforning non-blocking I/O . it means " there is no data available rn 
+try later" 
+
+
+
+
+
+
+
+
+
